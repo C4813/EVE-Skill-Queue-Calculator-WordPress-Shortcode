@@ -2,7 +2,7 @@
 /*
 Plugin Name: EVE Skill Queue Calculator
 Description: Adds a shortcode [eve_skill_queue_calculator] to display an EVE Online skill queue calculator to calculate required skillpoints, skill injectors, and optimal attributes.
-Version: 1.1
+Version: 1.2
 Author: C4813
 */
 
@@ -43,14 +43,12 @@ function eve_skill_queue_calculator_shortcode() {
         <p>Paste your skills below (format: <code>SkillName Level</code>, one per line):</p>
         <textarea id="skillsInput" rows="12" style="width:100%; font-family: monospace;"></textarea>
         <p>
-            <label for="currentSP">Current Skill Points:</label>
-            <input type="number" id="currentSP" value="0" min="0" style="width:150px;">
+            <label for="currentSPQueue">Current Skill Points Queue:</label>
+            <input type="number" id="currentSPQueue" value="0" min="0" style="width:150px;">
         </p>
         <button id="calcButton" style="padding: 0.5em 1em;">Calculate</button>
 
         <div id="results" style="margin-top:1em; padding:1em; white-space: normal; font-family: Arial, sans-serif;"></div>
-
-
     </div>
 
     <script>
@@ -73,6 +71,7 @@ function eve_skill_queue_calculator_shortcode() {
             if (sp < 80000000) return 300000;
             return 150000;
         }
+        
         function getSmallGain(sp) {
             if (sp < 5000000) return 100000;
             if (sp < 50000000) return 80000;
@@ -120,39 +119,39 @@ function eve_skill_queue_calculator_shortcode() {
         }
 
         function calculateInjectors(currentSP, targetSP) {
-            if(targetSP <= currentSP) return {large: 0, small:0};
+            if (targetSP <= currentSP) return { large: 0, small: 0 };
             let remainingSP = targetSP - currentSP;
             let largeCount = 0;
             let smallCount = 0;
             let tempSP = currentSP;
 
-            while (remainingSP > 0) {
+            while (true) {
                 let gainLarge = getLargeGain(tempSP);
-                if(gainLarge <= 0) break;
-                if(gainLarge > remainingSP) {
-                    let gainSmall = getSmallGain(tempSP);
-                    if(gainSmall > remainingSP) break;
-                    else {
-                        smallCount++;
-                        tempSP += gainSmall;
-                        remainingSP -= gainSmall;
-                    }
-                } else {
+                if (gainLarge <= 0) break;
+
+                if (gainLarge <= remainingSP) {
                     largeCount++;
                     tempSP += gainLarge;
                     remainingSP -= gainLarge;
+                } else {
+                    break;
                 }
             }
 
-            while (remainingSP > 0) {
+            while (true) {
                 let gainSmall = getSmallGain(tempSP);
-                if(gainSmall <= 0) break;
-                smallCount++;
-                tempSP += gainSmall;
-                remainingSP -= gainSmall;
+                if (gainSmall <= 0) break;
+
+                if (gainSmall <= remainingSP) {
+                    smallCount++;
+                    tempSP += gainSmall;
+                    remainingSP -= gainSmall;
+                } else {
+                    break;
+                }
             }
 
-            return {large: largeCount, small: smallCount};
+            return { large: largeCount, small: smallCount };
         }
 
         function trainingTimeMinutes(multiplier, level, primaryAttr, secondaryAttr) {
@@ -214,7 +213,7 @@ function eve_skill_queue_calculator_shortcode() {
 
         document.getElementById('calcButton').addEventListener('click', function(){
             const inputText = document.getElementById('skillsInput').value;
-            const currentSP = Number(document.getElementById('currentSP').value) || 0;
+            const currentSP = Number(document.getElementById('currentSPQueue').value) || 0;
 
             if(!inputText.trim()) {
                 alert("Please paste your skills data.");
@@ -273,6 +272,5 @@ function eve_skill_queue_calculator_shortcode() {
     <?php
     return ob_get_clean();
 }
-
 
 add_shortcode('eve_skill_queue_calculator', 'eve_skill_queue_calculator_shortcode');
