@@ -2,7 +2,7 @@
 /*
 Plugin Name: EVE Skill Queue Calculator
 Description: Adds a shortcode [eve_skill_queue_calculator] to display an EVE Online skill queue calculator to calculate required skillpoints, skill injectors, and optimal attributes.
-Version: 1.2
+Version: 1.2.1
 Author: C4813
 */
 
@@ -38,13 +38,23 @@ function eve_skill_queue_calculator_shortcode() {
 
     ob_start();
     ?>
+    <style>
+    #currentSPQueue::-webkit-outer-spin-button,
+    #currentSPQueue::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    #currentSPQueue {
+      -moz-appearance: textfield;
+    }
+    </style>
     <div id="queue-calculator" style="padding:1em; max-width:700px; font-family: Arial, sans-serif; margin: 0 auto; text-align: center;">
         <h2>Skill Queue Calculator</h2>
         <p>Paste your skills below (format: <code>SkillName Level</code>, one per line):</p>
         <textarea id="skillsInput" rows="12" style="width:100%; font-family: monospace;"></textarea>
         <p>
-            <label for="currentSPQueue">Current Skill Points Queue:</label>
-            <input type="number" id="currentSPQueue" value="0" min="0" style="width:150px;">
+            <label for="currentSPQueue">Current Skill Points</label>
+            <input type="number" id="currentSPQueue" name="currentSPQueue" value="0" min="0" style="width:150px;">
         </p>
         <button id="calcButton" style="padding: 0.5em 1em;">Calculate</button>
 
@@ -125,6 +135,7 @@ function eve_skill_queue_calculator_shortcode() {
             let smallCount = 0;
             let tempSP = currentSP;
 
+            // Inject large injectors while they fit fully
             while (true) {
                 let gainLarge = getLargeGain(tempSP);
                 if (gainLarge <= 0) break;
@@ -138,6 +149,7 @@ function eve_skill_queue_calculator_shortcode() {
                 }
             }
 
+            // Then try to cover leftover with small injectors
             while (true) {
                 let gainSmall = getSmallGain(tempSP);
                 if (gainSmall <= 0) break;
@@ -272,5 +284,6 @@ function eve_skill_queue_calculator_shortcode() {
     <?php
     return ob_get_clean();
 }
+
 
 add_shortcode('eve_skill_queue_calculator', 'eve_skill_queue_calculator_shortcode');
