@@ -2,7 +2,7 @@
 /*
 Plugin Name: EVE Skill Queue Calculator
 Description: Adds a shortcode [eve_skill_queue_calculator] to display an EVE Online skill queue calculator to calculate required skillpoints, skill injectors, and optimal attributes.
-Version: 1.2.1
+Version: 1.3
 Author: C4813
 */
 
@@ -26,6 +26,12 @@ $default_attributes = [
     "Charisma" => 17,
 ];
 
+// Enqueue external stylesheet
+function eve_skill_queue_calculator_enqueue_styles() {
+    wp_enqueue_style('eve-skill-queue-style', plugin_dir_url(__FILE__) . 'style.css');
+}
+add_action('wp_enqueue_scripts', 'eve_skill_queue_calculator_enqueue_styles');
+
 function eve_skill_queue_calculator_shortcode() {
     global $skills_data, $default_attributes;
 
@@ -38,27 +44,17 @@ function eve_skill_queue_calculator_shortcode() {
 
     ob_start();
     ?>
-    <style>
-    #currentSPQueue::-webkit-outer-spin-button,
-    #currentSPQueue::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    #currentSPQueue {
-      -moz-appearance: textfield;
-    }
-    </style>
-    <div id="queue-calculator" style="padding:1em; max-width:700px; font-family: Arial, sans-serif; margin: 0 auto; text-align: center;">
+    <div id="queue-calculator">
         <h2>Skill Queue Calculator</h2>
         <p>Paste your skills below (format: <code>SkillName Level</code>, one per line):</p>
-        <textarea id="skillsInput" rows="12" style="width:100%; font-family: monospace;"></textarea>
+        <textarea id="skillsInput" rows="12"></textarea>
         <p>
             <label for="currentSPQueue">Current Skill Points</label>
-            <input type="number" id="currentSPQueue" name="currentSPQueue" value="0" min="0" style="width:150px;">
+            <input type="number" id="currentSPQueue" name="currentSPQueue" value="0" min="0" />
         </p>
-        <button id="calcButton" style="padding: 0.5em 1em;">Calculate</button>
+        <button id="calcButton">Calculate</button>
 
-        <div id="results" style="margin-top:1em; padding:1em; white-space: normal; font-family: Arial, sans-serif;"></div>
+        <div id="results"></div>
     </div>
 
     <script>
@@ -75,18 +71,23 @@ function eve_skill_queue_calculator_shortcode() {
 
         const spPerLevel = [0, 250, 1165, 6585, 37255, 210745];
 
-        function getLargeGain(sp) {
-            if (sp < 5000000) return 500000;
-            if (sp < 50000000) return 400000;
-            if (sp < 80000000) return 300000;
-            return 150000;
+        function getGain(sp, thresholds, gains) {
+            for (let i = 0; i < thresholds.length; i++) {
+                if (sp < thresholds[i]) return gains[i];
+            }
+            return gains[gains.length - 1];
         }
-        
+
+        function getLargeGain(sp) {
+            const thresholds = [5000000, 50000000, 80000000];
+            const gains = [500000, 400000, 300000, 150000];
+            return getGain(sp, thresholds, gains);
+        }
+
         function getSmallGain(sp) {
-            if (sp < 5000000) return 100000;
-            if (sp < 50000000) return 80000;
-            if (sp < 80000000) return 60000;
-            return 30000;
+            const thresholds = [5000000, 50000000, 80000000];
+            const gains = [100000, 80000, 60000, 30000];
+            return getGain(sp, thresholds, gains);
         }
 
         function parseSkillsInput(input) {
@@ -273,8 +274,8 @@ function eve_skill_queue_calculator_shortcode() {
             resultText += `<strong>Jita Sell</strong>: ${totalSellCost.toLocaleString()} ISK\n\n`;
             resultText += `<strong>Estimated training time</strong> (default attributes): ${formatDuration(trainingSeconds)}\n\n`;
             resultText += `<strong>Optimal attributes</strong>:\n<strong>Primary</strong>: ${optAttrs.primary} (27)\n<strong>Secondary</strong>: ${optAttrs.secondary} (21)\n\n`;
-            resultText += `<strong>Estimated training time</strong> (optimal attributes 27/21): ${formatDuration(optTrainingSeconds)}\n`;
-            resultText += `<strong>Estimated training time</strong> (optimal attributes +5 implants): ${formatDuration(optTrainingSecondsPlus5)}\n`;
+            resultText += `<strong>Estimated training time</strong> (optimal attributes): ${formatDuration(optTrainingSeconds)}\n`;
+            resultText += `<strong>Estimated training time</strong> (optimal attributes & +5 implants): ${formatDuration(optTrainingSecondsPlus5)}\n`;
 
             document.getElementById('results').innerHTML = resultText.replace(/\n/g, '<br>');
 
@@ -284,6 +285,5 @@ function eve_skill_queue_calculator_shortcode() {
     <?php
     return ob_get_clean();
 }
-
 
 add_shortcode('eve_skill_queue_calculator', 'eve_skill_queue_calculator_shortcode');
