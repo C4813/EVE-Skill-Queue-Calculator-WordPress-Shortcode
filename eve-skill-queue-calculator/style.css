@@ -1,0 +1,44 @@
+#queue-calculator {
+    padding: 1em;
+    max-width: 700px;
+    font-family: Arial, sans-serif;
+    margin: 0 auto;
+    text-align: center;
+}
+
+#skillsInput {
+    width: 100%;
+    font-family: monospace;
+}
+
+#currentSPQueue {
+    width: 20%;
+    -webkit-appearance: textfield; /* Chrome, Safari, Edge */
+    -moz-appearance: textfield;    /* Firefox */
+}
+
+/* Remove spinner arrows in number inputs for Chrome, Edge, Safari */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    margin: 0;
+}
+
+
+/* Remove spinner arrows in number inputs for Firefox */
+input[type=number] {
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+}
+
+#calcButton {
+    padding: 0.5em 1em;
+}
+
+#results {
+    margin-top: 1em;
+    padding: 1em;
+    white-space: normal;
+    font-family: Arial, sans-serif;
+}
