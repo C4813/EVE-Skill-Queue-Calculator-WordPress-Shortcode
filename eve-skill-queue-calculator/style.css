@@ -42,3 +42,5 @@ input[type=number] {
     white-space: normal;
     font-family: Arial, sans-serif;
 }
+
+#results { white-space: pre-wrap; }
